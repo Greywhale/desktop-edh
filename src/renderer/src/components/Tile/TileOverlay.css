@@ -1,0 +1,27 @@
+
+
+.overlay {
+  background-color: green;
+  border-style: solid;
+  border-width: medium;
+}
+
+.overlay.warning {
+  background-color: yellow;
+}
+
+.overlay.critical {
+  background-color: red;
+}
+
+.life-total-input {
+  width: 75px;
+}
+
+.player-options {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.increase-life-button {
+  margin-left: 5px
+}
