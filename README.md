@@ -33,10 +33,30 @@ $ npm run build:mac
 $ npm run build:linux
 ```
 
+### BUG List
+0) turn rendering still buggy, sometimes disappears on add. I assume something is fighting over state?
+2) css is a little off on overlay
+7) change opacity to work with black on black
+8) default damage source should be turn player
+9) click off should minimize popover
+12) add col borders to table (change color?)
+13) sometimes you have to doubleclick damage to enter
+4) reset switch to neg
+6) dmg counter at 0
 
 ### TODO LIST
-1) Rotate highlight on turn player
-2) Click to enlarge
-3) Life Overlay
-4) Integrate with scryfall
-5)
+0) pass turn using mouse?
+1) monarchy (change background of bar into crown png or something)
+2) Click to enlarge 
+3) Integrate with scryfall 
+4) Timer 
+5) Metrics on dmg + time 
+6) Show your cmder 
+7) Commander in username field 
+8) turn off video option (turn off video when elimed?)
+9) shared dungeon 
+10) shared tokens? 
+11) hide screen from select players?
+12) make screen clicks populate
+
+

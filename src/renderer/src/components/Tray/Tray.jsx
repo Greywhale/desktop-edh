@@ -8,7 +8,6 @@ import {
   useVideoTrack,
 } from '@daily-co/daily-react';
 
-import MeetingInformation from '../MeetingInformation/MeetingInformation';
 import Chat from '../Chat/Chat';
 
 import './Tray.css';
@@ -26,7 +25,6 @@ export default function Tray({ leaveCall }) {
   const callObject = useDaily();
   const { isSharingScreen, startScreenShare, stopScreenShare } = useScreenShare();
 
-  const [showMeetingInformation, setShowMeetingInformation] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [newChatMessage, setNewChatMessage] = useState(false);
 
@@ -58,9 +56,6 @@ export default function Tray({ leaveCall }) {
 
   const toggleScreenShare = () => isSharingScreen ? stopScreenShare() : startScreenShare();
 
-  const toggleMeetingInformation = () => {
-    setShowMeetingInformation(!showMeetingInformation);
-  };
 
   const toggleChat = () => {
     setShowChat(!showChat);
@@ -71,7 +66,6 @@ export default function Tray({ leaveCall }) {
 
   return (
     <div className="tray">
-      {showMeetingInformation && <MeetingInformation />}
       {/*  The chat messages 'live' in the <Chat/> component's state. We can't just remove the component */}
       {/*  from the DOM when hiding the chat, because that would cause us to lose that state. So we're */}
       {/*  choosing a slightly different approach of toggling the chat: always render the component, but only */}
@@ -92,10 +86,8 @@ export default function Tray({ leaveCall }) {
             <Screenshare />
             {isSharingScreen ? 'Stop sharing screen' : 'Share screen'}
           </button>
-          <button onClick={toggleMeetingInformation} type="button">
             <Info />
-            {showMeetingInformation ? 'Hide info' : 'Show info'}
-          </button>
+            <Info />
           <button onClick={toggleChat} type="button">
             {newChatMessage ? <ChatHighlighted /> : <ChatIcon />}
             {showChat ? 'Hide chat' : 'Show chat'}

@@ -1,17 +1,27 @@
 
 
 .overlay {
-  background-color: green;
+
   border-style: solid;
-  border-width: medium;
+  border-width: thin;
+  grid-row-start: 1;
+  grid-column-start: 1;
+  z-index: 1;
+  height: 33px;
+  background-color: rgba(94, 094, 94, 0.7);
+  width: 99.7%;
 }
 
-.overlay.warning {
-  background-color: yellow;
+.life-total {
+  color: green;
 }
 
-.overlay.critical {
-  background-color: red;
+.life-total.warning {
+  color: yellow;
+}
+
+.life-total.critical {
+  color: red;
 }
 
 .life-total-input {
@@ -24,4 +34,13 @@
 
 .increase-life-button {
   margin-left: 5px
+}
+
+.damage-source-toggle-button {
+  border-right: 1px solid lightgray;
+  padding-right: 2px;
+}
+
+.dropdown-area {
+  background-color: rgb(220 220 220 / 70%);
 }

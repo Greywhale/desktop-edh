@@ -1,96 +1,79 @@
 import React, { useState } from 'react';
 import Username from '../Username/Username';
 import './TileOverlay.css';
-import { ActionIcon, Tooltip, NumberInput, Grid, Text, Popover  } from '@mantine/core';
-import { IconCaretUp, IconCaretDown, IconArrowsShuffle } from '@tabler/icons-react';
+import { ActionIcon, Tooltip, NumberInput, Grid, Text, Popover, Collapse, Box  } from '@mantine/core';
+import { IconCaretUp, IconCaretDown, IconArrowsShuffle, IconCrown, IconMatchstick } from '@tabler/icons-react';
 import {
 useLocalSessionId,
 useParticipantProperty,
 } from '@daily-co/daily-react';
+import { useDisclosure } from '@mantine/hooks';
+import {ADD_OPERATOR, SUBTRACT_OPERATOR} from './TileConstants';
+import TileOverlayBody from './TileOverlayBody'
 
-export default function TileOverlay({ id, isLocal, updateLifeTotal, handleReOrder }) {
+//TODO Turn lifeTotal into dictionary of userstuff
+export default function TileOverlay(props) {
+  const { id, updateLifeTotal, participantList, userName, lifeTotal, isMonarch, isInitiative, handleSetMonarchy, handleSetInitiative,  ...rest } = props
   const [changeLifeInput, setChangeLifeInput] = useState();
+  const [opened, { toggle }] = useDisclosure(false);
 
-  const [lifeTotal, userName] = useParticipantProperty(id, ['userData.lifeTotal', 'user_name']);
+//  const [lifeTotal, userName] = useParticipantProperty(id, ['userData.lifeTotal', 'user_name']);
 
-  const onPlus = () => {
-    //Todo strip e out
-    if(changeLifeInput){
-      updateLifeTotal(parseInt(lifeTotal) + parseInt(changeLifeInput));
-      setChangeLifeInput("");
-    }
+  const handlePlus = (value, damageSource) => {
+    updateLifeTotal(parseInt(value), damageSource, ADD_OPERATOR);
   }
 
-  const onSubtract = () => {
-    //Todo strip e out
-    if(changeLifeInput){
-      updateLifeTotal(parseInt(lifeTotal) - parseInt(changeLifeInput));
-      setChangeLifeInput("");
-    }
+  const handleSubtract = (value, damageSource) => {
+    updateLifeTotal(parseInt(value), damageSource, SUBTRACT_OPERATOR);
   }
 
-  const onReorder = () => {
-    handleReOrder();
+  const handleTakeMonarchy = () => {
+    handleSetMonarchy(id);
   }
 
-  const handleInputChange = (value) => {
-    setChangeLifeInput(value);
-  };
+  const handleTakeInitiative = () => {
+    handleSetInitiative(id);
+  }
 
-  let overlayClassName = "overlay";
+  let lifeTotalHexCode = "rgba(12, 179, 0, 1)";
   if(lifeTotal < 10) {
-    overlayClassName += " critical";
+    lifeTotalHexCode = "red";
   } else if (lifeTotal < 20) {
-    overlayClassName += " warning";
+    lifeTotalHexCode = " yellow";
   }
 
   return (
-  <div className={overlayClassName}>
-  <Popover position="bottom" withArrow shadow="md" disabled={!isLocal} offset={0}>
-
-  <Popover.Target>
-  <Grid grow gutter="xs">
+  <div className="overlay" >
+  <Grid grow gutter="xs" onClick={toggle}>
   <Grid.Col className="life-total-display" span={2.5}>
   <Text size="lg" ta="center">{userName}</Text>
   </Grid.Col>
+  <Grid.Col span={.5}>
+  {isMonarch && (<IconCrown size={16} stroke={2.5} color="yellow" />)}
+
+  </Grid.Col>
+  <Grid.Col span={.5}>
+  {isInitiative && (<IconMatchstick className="visually-hidden" size={16} stroke={2.5} color="red" />)}
+  </Grid.Col>
   <Grid.Col className="life-total-display" span={2.5}>
-  <Text size="lg" ta="center">{lifeTotal}</Text>
+  <Text ta="center" size="lg"
+  fw={900}
+  c={lifeTotalHexCode}>{lifeTotal}</Text>
   </Grid.Col>
   </Grid>
-  </Popover.Target>
 
-  <Popover.Dropdown className="player-options">
-  <Grid grow gutter="xs">
-  <Grid.Col span={1}>
-  <Tooltip label="ReOrder Game">
-  <ActionIcon size="md" variant="filled" color="gray" aria-label="Settings">
-  <IconArrowsShuffle style={{ width: '70%', height: '70%' }} stroke={1.5} onClick={onReorder} />
-  </ActionIcon>
-  </Tooltip>
-  </Grid.Col>
+  <Collapse in={opened}>
+  <TileOverlayBody
+  handleSubtract={handleSubtract}
+  handlePlus={handlePlus}
+  handleTakeMonarchy={handleTakeMonarchy}
+  handleTakeInitiative={handleTakeInitiative}
+isMonarch={isMonarch}
+isInitiative={isInitiative}
+  {...props}
+/>
+  </Collapse>
 
-  <Grid.Col span="auto">
-  <NumberInput
-  size="xs"
-  className="life-total-input"
-  onChange={handleInputChange} value={changeLifeInput} defaultValue={""}
-  allowNegative={false}
-  />
-  </Grid.Col>
-
-  <Grid.Col span={3.5}>
-  <ActionIcon variant="gradient" gradient={{ from: 'rgba(176, 0, 0, 1)', to: 'red', deg: 90 }} aria-label="Settings">
-  <IconCaretDown style={{ width: '70%', height: '70%' }} stroke={1.5} onClick={onSubtract}/>
-  </ActionIcon>
-  <ActionIcon className="increase-life-button" variant="gradient" gradient={{ from: 'lime', to: 'teal', deg: 90 }} aria-label="Settings">
-  <IconCaretUp style={{ width: '70%', height: '70%' }} stroke={1.5} onClick={onPlus}/>
-  </ActionIcon>
-  </Grid.Col>
-
-  </Grid>
-  </Popover.Dropdown>
-
-  </Popover>
 
   </div>
   );
