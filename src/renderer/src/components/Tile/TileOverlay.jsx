@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import './TileOverlay.css';
 import { Grid, Text, Collapse } from '@mantine/core';
 import { IconCrown, IconMatchstick } from '@tabler/icons-react';
@@ -17,11 +16,8 @@ export default function TileOverlay(props) {
     isInitiative,
     handleSetMonarchy,
     handleSetInitiative,
-    ...rest
   } = props;
   const [opened, { toggle }] = useDisclosure(false);
-
-  //  const [lifeTotal, userName] = useParticipantProperty(id, ['userData.lifeTotal', 'user_name']);
 
   const handlePlus = (value, damageSource) => {
     updateLifeTotal(parseInt(value), damageSource, ADD_OPERATOR);
@@ -83,3 +79,14 @@ export default function TileOverlay(props) {
     </div>
   );
 }
+
+TileOverlay.propTypes = {
+  id: String,
+  userName: String,
+  lifeTotal: Number,
+  isMonarch: Boolean,
+  isInitiative: Boolean,
+  updateLifeTotal: Function,
+  handleSetMonarchy: Function,
+  handleSetInitiative: Function
+};

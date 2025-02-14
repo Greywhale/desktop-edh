@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './TileOverlay.css';
 import {
   ActionIcon,
@@ -20,7 +20,8 @@ import {
   IconPlus,
   IconArrowRight,
   IconCrown,
-  IconMatchstick
+  IconMatchstick,
+  IconReplaceUser 
 } from '@tabler/icons-react';
 
 export default function TileOverlayBody({
@@ -34,20 +35,21 @@ export default function TileOverlayBody({
   handleTakeInitiative,
   isInitiative,
   isMonarch,
-  isLocal
+  isLocal,
+  defaultDamageSource,
+  handleFindAndSetNextPlayer
 }) {
   const combobox = useCombobox();
   const [changeLifeAmt, setChangeLifeAmt] = useState(0);
-  const [damageSource, setDamageSource] = useState('');
+  const [damageSource, setDamageSource] = useState(defaultDamageSource);
   const [isMinusOperator, setIsMinusOperator] = useState(true);
-  // const [shouldTakeInitiative, setShouldTakeInitiative] = useState(false)
-  // const [shouldTakeMonarchy, setShouldTakeMonarchy] = useState(false)
-  // const [lifeOperator, setLifeOperator] = useState('minus')
-  // const participantCount = useParticipantCounts()
-  // let participantIDs = []
+
+  useEffect(() => {
+    setDamageSource(defaultDamageSource);
+  }, [defaultDamageSource]);
 
   //need to fix this to have uuids and usernames
-  const shouldFilterOptions = false; //!participantList.some((item) => item.userName === damageSource);
+  const shouldFilterOptions = !participantList.some((item) => item.userName === damageSource);
   const filteredOptions = shouldFilterOptions
     ? participantList.filter((item) =>
         item.userName.toLowerCase().includes(damageSource.toLowerCase().trim())
@@ -70,15 +72,15 @@ export default function TileOverlayBody({
   };
 
   const onEnterLifeChange = () => {
-    //    if(participantUserNames.includes(damageSource)){
     if (changeLifeAmt > 0) {
       if (isMinusOperator) {
         handleSubtract(changeLifeAmt, damageSource);
       } else {
         handlePlus(changeLifeAmt, damageSource);
       }
-      setChangeLifeAmt('');
+      setChangeLifeAmt(0);
       setDamageSource('');
+      setIsMinusOperator(true);
     } else {
       //TODO Error state
     }
@@ -89,6 +91,10 @@ export default function TileOverlayBody({
     if (e.charCode === 13) {
       onEnterLifeChange();
     }
+  };
+
+  const onTurnPass = () => {
+    handleFindAndSetNextPlayer();
   };
 
   const chevron = (
@@ -220,6 +226,17 @@ export default function TileOverlayBody({
               </ActionIcon>
             </Tooltip>
           </Grid.Col>
+          <Grid.Col span={0.5}>
+            <Tooltip label="Pass Turn">
+              <ActionIcon size="md" variant="filled" color="orange" aria-label="Settings">
+                <IconReplaceUser
+                  style={{ width: '70%', height: '70%' }}
+                  stroke={1.5}
+                  onClick={onTurnPass}
+                />
+              </ActionIcon>
+            </Tooltip>
+          </Grid.Col>
           <Grid.Col span={10}>
             <Table highlightOnHover withTableBorder withColumnBorders data={tableData} />
           </Grid.Col>
@@ -232,3 +249,19 @@ export default function TileOverlayBody({
     </div>
   );
 }
+
+TileOverlayBody.propTypes = {
+  handleReset: Function,
+  handleReOrder: Function,
+  handleSubtract: Function,
+  handlePlus: Function,
+  participantList: Array,
+  lifeLogTableArray: Array,
+  handleTakeMonarchy: Function,
+  handleTakeInitiative: Function,
+  isInitiative: Boolean,
+  isMonarch: Boolean,
+  isLocal: Boolean,
+  defaultDamageSource: String | undefined,
+  handleFindAndSetNextPlayer: Function
+};

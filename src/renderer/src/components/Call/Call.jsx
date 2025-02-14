@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   useDaily,
   useParticipantIds,
@@ -55,9 +55,16 @@ function shuffle(array) {
   return shuffledArray;
 }
 
-const initMechanicState = {
-  monarch: false,
-  initiative: false
+// Believe that monarch + init have to be global
+// const initGlobalMechanicsState = {
+//   monarch: false,
+//   initiative: false,
+//   dead: false
+// };
+
+const defaultGlobalState = {
+  monarchUUID: undefined,
+  initiativeUUID: undefined
 };
 
 export default function Call() {
@@ -68,30 +75,35 @@ export default function Call() {
   const [orderedParticipantIds, setOrderedParticipantIds] = useState([]);
   const [renderedParticipantIds, setRenderedParticipantIds] = useState([]);
 
-  const [mechanicStates, setMechanicStates] = useState(initMechanicState);
+  // const [mechanicStates, setMechanicStates] = useState(initMechanicState);
   const [monarchPlayer, setMonarchPlayer] = useState();
   const [initiativePlayer, setInitiativePlayer] = useState();
+  const [defaultDamageSource, setDefaultDamageSource] = useState('');
 
-  //  const participantIds = useParticipantIds({sort: compare});
+  //Provider object to use DailyJS stuff
+  const callObject = useDaily();
   const participantIds = useParticipantIds({ sort: 'joined_at' });
-
   const localSessionId = useLocalSessionId();
+  const { globalGameNumber, monarchUUID, initiativeUUID, turnOrderSorted, turnPlayerIndex } =
+    useMeetingSessionState().data;
 
-  const { data } = useMeetingSessionState();
-  const { globalGameNumber } = useMeetingSessionState().data;
+  
+  const turnPlayerId = orderedParticipantIds[turnPlayerIndex];
 
   // -- Turn Order
   useEffect(() => {
-    if (data.turnOrderSorted !== undefined) {
-      setOrderedParticipantIds([...data.turnOrderSorted]);
+    if (turnOrderSorted !== undefined) {
+      setOrderedParticipantIds([...turnOrderSorted]);
     }
-  }, [data.turnOrderSorted]);
+  }, [turnOrderSorted]);
 
   useEffect(() => {
-    console.log('Init or Monarch UUID updated');
-    setMonarchPlayer(data.monarchUUID);
-    setInitiativePlayer(data.initiativeUUID);
-  }, [data.monarchUUID, data.initiativeUUID]);
+    setInitiativePlayer(initiativeUUID);
+  }, [initiativeUUID]);
+
+  useEffect(() => {
+    setMonarchPlayer(monarchUUID);
+  }, [monarchUUID]);
 
   useEffect(() => {
     console.log('Ordered Participants Changed');
@@ -106,10 +118,6 @@ export default function Call() {
 
     setRenderedParticipantIds([...renderedArray]);
   }, [orderedParticipantIds]);
-
-  //Provider object to use DailyJS stuff
-  const callObject = useDaily();
-  const turnPlayerId = orderedParticipantIds[data.turnPlayerIndex];
 
   /* We can use the useDailyEvent() hook to listen for daily-js events. Here's a full list
    * of all events: https://docs.daily.co/reference/daily-js/events */
@@ -133,13 +141,12 @@ export default function Call() {
         userId: fullParticipantObj.user_id
       });
     });
-    console.log(newParticipantList);
     setParticipantList(newParticipantList);
     console.log('PARTICIPANTS UPDATED');
 
     if (orderedParticipantIds.length !== participantIds.length) {
       const updatedOrderedParticipantIds =
-        data.turnOrderSorted !== undefined ? data.turnOrderSorted : orderedParticipantIds;
+        turnOrderSorted !== undefined ? turnOrderSorted : orderedParticipantIds;
       for (let i = 0; i < participantIds.length; i++) {
         if (!updatedOrderedParticipantIds.includes(participantIds[i])) {
           updatedOrderedParticipantIds.push(participantIds[i]);
@@ -151,13 +158,11 @@ export default function Call() {
     }
   }, [participantIds]);
 
-  const findAndSetNextPlayer = () => {
-    const turnPlayerIndex = data.turnPlayerIndex !== undefined ? data.turnPlayerIndex : 0;
+  const handleFindAndSetNextPlayer = () => {
     if (orderedParticipantIds.length > 1) {
+      const currentTurnPlayerIndex = turnPlayerIndex !== undefined ? turnPlayerIndex : 0;
       const nextPlayerIndex =
-        turnPlayerIndex + 1 >= orderedParticipantIds.length ? 0 : turnPlayerIndex + 1;
-      console.log(orderedParticipantIds);
-      console.log(renderedParticipantIds);
+        currentTurnPlayerIndex + 1 >= orderedParticipantIds.length ? 0 : currentTurnPlayerIndex + 1;
       const nextPlayerUUID = orderedParticipantIds[nextPlayerIndex];
       console.log('Next Player index: ' + nextPlayerIndex);
       console.log('Next Player should be: ' + nextPlayerUUID);
@@ -168,7 +173,7 @@ export default function Call() {
   // --Handle keydown events
   const handleKeydownEvent = (e) => {
     if (document.activeElement.tagName.toLowerCase() !== 'input' && e.key === ' ') {
-      findAndSetNextPlayer();
+      handleFindAndSetNextPlayer();
     }
   };
 
@@ -177,10 +182,12 @@ export default function Call() {
     return () => {
       document.removeEventListener('keydown', handleKeydownEvent, false);
     };
-  }, [data.turnPlayerIndex, participantIds]);
+  }, [turnPlayerIndex, participantIds]);
   // --
 
-  //-- Reset Effect
+  /**
+   * Per User State reset
+   */
   useEffect(() => {
     const userData = callObject.participants()['local'].userData;
     if (globalGameNumber !== undefined && userData.gameNumber !== globalGameNumber) {
@@ -188,12 +195,18 @@ export default function Call() {
         ...userData,
         gameNumber: globalGameNumber,
         lifeTotal: 40,
-        lifeLog: []
+        lifeLog: [],
+        initiativeUUID: undefined,
+        monarchUUID: undefined
       };
       callObject.setUserData(updatedUserData);
     }
   }, [globalGameNumber]);
 
+  /**
+   * Resets game setting global state trackers back to init and
+   * incrememting the global game number which kicks off all clientside effects to handle user defaults
+   */
   const handleReset = () => {
     const { globalGameNumber } = callObject.meetingSessionState().data;
     let newGlobalGameNumber = 0;
@@ -201,7 +214,10 @@ export default function Call() {
       newGlobalGameNumber = globalGameNumber + 1;
     }
     //Set turn player to player 1
-    callObject.setMeetingSessionData({ globalGameNumber: newGlobalGameNumber }, 'shallow-merge');
+    callObject.setMeetingSessionData(
+      { globalGameNumber: newGlobalGameNumber, ...defaultGlobalState },
+      'shallow-merge'
+    );
   };
 
   const handleReOrder = () => {
@@ -217,15 +233,18 @@ export default function Call() {
   };
 
   const handleSetMonarchy = (uuid) => {
-    callObject.setMeetingSessionData({ monarchUUID: uuid }, 'shallow-merge');
+    const newMonarchUUID = monarchUUID === uuid ? undefined : uuid;
+    callObject.setMeetingSessionData({ monarchUUID: newMonarchUUID }, 'shallow-merge');
   };
 
   const handleSetInitiative = (uuid) => {
-    callObject.setMeetingSessionData({ initiativeUUID: uuid }, 'shallow-merge');
+    const newInitiativeUUID = initiativeUUID === uuid ? undefined : uuid;
+    callObject.setMeetingSessionData({ initiativeUUID: newInitiativeUUID }, 'shallow-merge');
   };
 
-  //Debuging to connect new robot users
-  //  console.log(window.location.href);
+  const handleDefaultDamageSource = (userName) => {
+    setDefaultDamageSource(userName);
+  };
 
   const renderCallScreen = () => (
     <div className="call">
@@ -239,6 +258,7 @@ export default function Call() {
           <Tile
             key={id}
             id={id}
+            localSessionId={localSessionId}
             isTurnPlayer={id === turnPlayerId}
             isMonarch={id === monarchPlayer}
             isInitiative={id === initiativePlayer}
@@ -247,6 +267,9 @@ export default function Call() {
             handleReset={handleReset}
             handleSetMonarchy={handleSetMonarchy}
             handleSetInitiative={handleSetInitiative}
+            defaultDamageSource={defaultDamageSource}
+            handleDefaultDamageSource={handleDefaultDamageSource}
+            handleFindAndSetNextPlayer={handleFindAndSetNextPlayer}
           />
         ))}
       </SimpleGrid>

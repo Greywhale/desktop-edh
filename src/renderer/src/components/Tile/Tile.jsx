@@ -1,26 +1,24 @@
 import './Tile.css';
-import {
-  useDaily,
-  useLocalSessionId,
-  DailyVideo,
-  useParticipantProperty
-} from '@daily-co/daily-react';
-import React, { useEffect, useState } from 'react';
+import { useDaily, DailyVideo, useParticipantProperty } from '@daily-co/daily-react';
+import { useEffect, useState } from 'react';
 import TileOverlay from './TileOverlay';
 import { ADD_OPERATOR } from './TileConstants';
 
 export default function Tile(props) {
-  const { id, isTurnPlayer, ...rest } = props;
+  const { id, localSessionId, isTurnPlayer, handleDefaultDamageSource } = props;
+  const isLocal = localSessionId === id;
+  const [lifeLogTableArray, setLifeLogTableArray] = useState();
+  let containerCssClasses = 'tile-video';
+  if (isTurnPlayer) {
+    containerCssClasses += ' turn-player';
+  }
+
   const callObject = useDaily();
-
-  const localSessionId = useLocalSessionId();
-
   const [lifeTotal, lifeLog, userName] = useParticipantProperty(id, [
     'userData.lifeTotal',
     'userData.lifeLog',
     'user_name'
   ]);
-  const [lifeLogTableArray, setLifeLogTableArray] = useState();
 
   useEffect(() => {
     console.log(lifeLog);
@@ -31,7 +29,6 @@ export default function Tile(props) {
         const existingData = lifeTableData[log.damageSource];
         const damageTakenValue = log.operator === ADD_OPERATOR ? -Math.abs(log.value) : log.value;
         if (existingData !== undefined) {
-          console.log(existingData);
           lifeTableData[log.damageSource].damageTaken =
             lifeTableData[log.damageSource].damageTaken + damageTakenValue;
         } else {
@@ -46,21 +43,10 @@ export default function Tile(props) {
     }
   }, [lifeLog, lifeTotal]);
 
-  const isLocal = localSessionId === id;
-
-  let containerCssClasses = 'tile-video';
-  if (isTurnPlayer) {
-    containerCssClasses += ' turn-player';
-  }
-
-  /* If a participant's video is muted, hide their video and
-  add a different background color to their tile. */
-
   const updateLifeTotal = (value, damageSource, operator) => {
     //TODO damagesource should prob us an id:username map
     const userData = callObject.participants()['local'].userData;
     let updatedLifeTotal;
-    console.log(value);
     if (operator === ADD_OPERATOR) {
       updatedLifeTotal = parseInt(lifeTotal) + parseInt(value);
     } else {
@@ -72,6 +58,13 @@ export default function Tile(props) {
 
     const updatedUserData = { ...userData, lifeTotal: updatedLifeTotal, lifeLog: newLifeLog };
     callObject.setUserData(updatedUserData);
+
+    //Reset for eventHandler
+    handleDefaultDamageSource('');
+  };
+
+  const onVideoClick = () => {
+    handleDefaultDamageSource(userName);
   };
 
   return (
@@ -84,7 +77,20 @@ export default function Tile(props) {
         lifeLogTableArray={lifeLogTableArray}
         {...props}
       />
-      <DailyVideo className="video-screen" automirror sessionId={id} type="video" />
+      <DailyVideo
+        className="video-screen"
+        automirror
+        sessionId={id}
+        type="video"
+        onClick={onVideoClick}
+      />
     </div>
   );
 }
+
+Tile.propTypes = {
+  id: String,
+  localSessionId: String,
+  isTurnPlayer: Boolean,
+  handleDefaultDamageSource: Function
+};

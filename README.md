@@ -33,20 +33,17 @@ $ npm run build:mac
 $ npm run build:linux
 ```
 
+default damage source should be turn player Try new UI Get feedback
+
 ### BUG List
 0) turn rendering still buggy, sometimes disappears on add. I assume something is fighting over state?
-2) css is a little off on overlay
-7) change opacity to work with black on black
-8) default damage source should be turn player
-9) click off should minimize popover
-12) add col borders to table (change color?)
-13) sometimes you have to doubleclick damage to enter
-4) reset switch to neg
-6) dmg counter at 0
+1) css is a little off on overlay
+2) change opacity to work with black on black 
+3) add col borders to table (change color?)
+4) sometimes you have to doubleclick damage to enter
 
 ### TODO LIST
 0) pass turn using mouse?
-1) monarchy (change background of bar into crown png or something)
 2) Click to enlarge 
 3) Integrate with scryfall 
 4) Timer 
@@ -57,6 +54,3 @@ $ npm run build:linux
 9) shared dungeon 
 10) shared tokens? 
 11) hide screen from select players?
-12) make screen clicks populate
-
-
