@@ -1,5 +1,6 @@
 .tile-video {
   display: grid;
+  position: relative;
 }
 
 @media only screen and (max-width: 600px) {
@@ -59,4 +60,10 @@ border: solid yellow;
   grid-row-start: 1;
   grid-column-start: 1;
   height: 99%
+}
+
+.pass-turn-btn {
+  position: absolute;
+  bottom: 1%;
+  right: .5%;
 }

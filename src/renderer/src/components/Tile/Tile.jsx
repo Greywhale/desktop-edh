@@ -1,15 +1,23 @@
 import './Tile.css';
 import { useDaily, DailyVideo, useParticipantProperty } from '@daily-co/daily-react';
+import { Tooltip, ActionIcon } from '@mantine/core';
+import { IconReplaceUser } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import TileOverlay from './TileOverlay';
 import { ADD_OPERATOR } from './TileConstants';
 
 export default function Tile(props) {
-  const { id, localSessionId, isTurnPlayer, handleDefaultDamageSource } = props;
+  const {
+    id,
+    localSessionId,
+    turnPlayerId,
+    handleDefaultDamageSource,
+    handleFindAndSetNextPlayer
+  } = props;
   const isLocal = localSessionId === id;
   const [lifeLogTableArray, setLifeLogTableArray] = useState();
   let containerCssClasses = 'tile-video';
-  if (isTurnPlayer) {
+  if (turnPlayerId === id) {
     containerCssClasses += ' turn-player';
   }
 
@@ -67,6 +75,10 @@ export default function Tile(props) {
     handleDefaultDamageSource(userName);
   };
 
+  const onTurnPass = () => {
+    handleFindAndSetNextPlayer();
+  };
+
   return (
     <div className={containerCssClasses}>
       <TileOverlay
@@ -84,6 +96,21 @@ export default function Tile(props) {
         type="video"
         onClick={onVideoClick}
       />
+      {turnPlayerId === localSessionId && id === localSessionId && (
+        <div className="pass-turn-btn">
+          <Tooltip label="Pass Turn">
+            <ActionIcon
+              size="md"
+              variant="filled"
+              color="orange"
+              aria-label="Settings"
+              onClick={onTurnPass}
+            >
+              <IconReplaceUser style={{ width: '70%', height: '70%' }} stroke={1.5} />
+            </ActionIcon>
+          </Tooltip>
+        </div>
+      )}
     </div>
   );
 }
@@ -91,6 +118,7 @@ export default function Tile(props) {
 Tile.propTypes = {
   id: String,
   localSessionId: String,
-  isTurnPlayer: Boolean,
-  handleDefaultDamageSource: Function
+  turnPlayerId: String,
+  handleDefaultDamageSource: Function,
+  handleFindAndSetNextPlayer: Function
 };

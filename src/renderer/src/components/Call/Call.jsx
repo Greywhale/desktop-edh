@@ -87,7 +87,6 @@ export default function Call() {
   const { globalGameNumber, monarchUUID, initiativeUUID, turnOrderSorted, turnPlayerIndex } =
     useMeetingSessionState().data;
 
-  
   const turnPlayerId = orderedParticipantIds[turnPlayerIndex];
 
   // -- Turn Order
@@ -128,6 +127,10 @@ export default function Call() {
     }, [])
   );
 
+  useEffect(() => {
+    console.log("onload");
+  }, []);
+
   // -- Effect to handle User Name Array
   useEffect(() => {
     console.log('Participants Changed');
@@ -136,24 +139,43 @@ export default function Call() {
     participantIds.forEach((id) => {
       const playerId = id === localSessionId ? 'local' : id;
       const fullParticipantObj = callObject.participants()[playerId];
-      newParticipantList.push({
-        userName: fullParticipantObj.user_name,
-        userId: fullParticipantObj.user_id
-      });
+      console.log(fullParticipantObj);
+      if (fullParticipantObj) {
+        newParticipantList.push({
+          userName: fullParticipantObj.user_name,
+          userId: fullParticipantObj.user_id
+        });
+      }
     });
     setParticipantList(newParticipantList);
     console.log('PARTICIPANTS UPDATED');
-
-    if (orderedParticipantIds.length !== participantIds.length) {
+    //If people leave this will pull turnOrderSorted which is now wrong
+    if (
+      orderedParticipantIds.lenght > 0 &&
+      orderedParticipantIds.length !== participantIds.length
+    ) {
       const updatedOrderedParticipantIds =
         turnOrderSorted !== undefined ? turnOrderSorted : orderedParticipantIds;
-      for (let i = 0; i < participantIds.length; i++) {
-        if (!updatedOrderedParticipantIds.includes(participantIds[i])) {
-          updatedOrderedParticipantIds.push(participantIds[i]);
+      const validatedOrderedParticipantIds = [];
+      //Update for new leaves
+      for (let j = 0; j < updatedOrderedParticipantIds.length; j++) {
+        console.log(updatedOrderedParticipantIds[j]);
+        if (participantIds.includes(updatedOrderedParticipantIds[j])) {
+          validatedOrderedParticipantIds.push(updatedOrderedParticipantIds[j]);
         }
       }
-      setOrderedParticipantIds([...updatedOrderedParticipantIds]);
-    } else if (orderedParticipantIds.length === 0) {
+      //Attempt to update for new joins
+      for (let i = 0; i < participantIds.length; i++) {
+        console.log(participantIds[i]);
+        if (!validatedOrderedParticipantIds.includes(participantIds[i])) {
+          // updatedOrderedParticipantIds.push(participantIds[i]);
+          validatedOrderedParticipantIds.push(participantIds[i]);
+        }
+      }
+      setOrderedParticipantIds([...validatedOrderedParticipantIds]);
+    } else {
+      console.log('No Defined Order Yet');
+      console.log(participantIds);
       setOrderedParticipantIds([...participantIds]);
     }
   }, [participantIds]);
@@ -259,7 +281,7 @@ export default function Call() {
             key={id}
             id={id}
             localSessionId={localSessionId}
-            isTurnPlayer={id === turnPlayerId}
+            turnPlayerId={turnPlayerId}
             isMonarch={id === monarchPlayer}
             isInitiative={id === initiativePlayer}
             participantList={participantList}

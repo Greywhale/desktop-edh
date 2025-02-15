@@ -20,8 +20,7 @@ import {
   IconPlus,
   IconArrowRight,
   IconCrown,
-  IconMatchstick,
-  IconReplaceUser 
+  IconMatchstick
 } from '@tabler/icons-react';
 
 export default function TileOverlayBody({
@@ -36,8 +35,7 @@ export default function TileOverlayBody({
   isInitiative,
   isMonarch,
   isLocal,
-  defaultDamageSource,
-  handleFindAndSetNextPlayer
+  defaultDamageSource
 }) {
   const combobox = useCombobox();
   const [changeLifeAmt, setChangeLifeAmt] = useState(0);
@@ -91,10 +89,6 @@ export default function TileOverlayBody({
     if (e.charCode === 13) {
       onEnterLifeChange();
     }
-  };
-
-  const onTurnPass = () => {
-    handleFindAndSetNextPlayer();
   };
 
   const chevron = (
@@ -226,17 +220,6 @@ export default function TileOverlayBody({
               </ActionIcon>
             </Tooltip>
           </Grid.Col>
-          <Grid.Col span={0.5}>
-            <Tooltip label="Pass Turn">
-              <ActionIcon size="md" variant="filled" color="orange" aria-label="Settings">
-                <IconReplaceUser
-                  style={{ width: '70%', height: '70%' }}
-                  stroke={1.5}
-                  onClick={onTurnPass}
-                />
-              </ActionIcon>
-            </Tooltip>
-          </Grid.Col>
           <Grid.Col span={10}>
             <Table highlightOnHover withTableBorder withColumnBorders data={tableData} />
           </Grid.Col>
@@ -262,6 +245,5 @@ TileOverlayBody.propTypes = {
   isInitiative: Boolean,
   isMonarch: Boolean,
   isLocal: Boolean,
-  defaultDamageSource: String | undefined,
-  handleFindAndSetNextPlayer: Function
+  defaultDamageSource: String | undefined
 };

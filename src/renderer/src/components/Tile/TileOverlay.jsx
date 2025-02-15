@@ -15,7 +15,7 @@ export default function TileOverlay(props) {
     isMonarch,
     isInitiative,
     handleSetMonarchy,
-    handleSetInitiative,
+    handleSetInitiative
   } = props;
   const [opened, { toggle }] = useDisclosure(false);
 
